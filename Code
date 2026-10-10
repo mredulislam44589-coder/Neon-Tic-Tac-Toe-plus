@@ -1,0 +1,957 @@
+```html
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="google-site-verification" content="M8yC4z6WYfCeG9Rb3l4tnJ0IKo680ipAf1BVTH0P2K4" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>NEON TICTACTOE - Live Multiplayer</title>
+<style>
+:root {
+  --bg-gradient: radial-gradient(ellipse at 50% 50%, #290859 0%, #11052c 50%, #060216 100%);
+  --neon-cyan: #00f0ff;
+  --neon-pink: #ff007f;
+  --neon-blue: #0088ff;
+  --neon-green: #00ff88;
+  --neon-orange: #ff9900;
+  --purple-btn: #7000ff;
+  --white: #ffffff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--white);
+  background: var(--bg-gradient);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 100px 150px, #00f0ff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 200px 80px, #ff007f, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 300px 250px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2.5px 2.5px at 400px 350px, #00ff88, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 500px 500px;
+  opacity: 0.6;
+  z-index: 0;
+}
+
+.wrap {
+  width: min(100%, 480px);
+  min-height: 100vh;
+  margin: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.iconbtn {
+  border: none;
+  background: #5b21b6;
+  color: #fff;
+  border-radius: 16px;
+  width: 48px;
+  height: 48px;
+  font-size: 22px;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.5), inset 0 0 10px rgba(255,255,255,0.2);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.iconbtn:active {
+  transform: scale(0.92);
+}
+
+.coin-display {
+  display: flex;
+  align-items: center;
+  background: #0f172a;
+  border: 2px solid #3b82f6;
+  border-radius: 20px;
+  padding: 4px 14px 4px 8px;
+  gap: 8px;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.coin-icon { font-size: 20px; }
+.coin-count { font-weight: 900; font-size: 16px; color: #fff; }
+
+.title-box {
+  border: 3px solid #00ff88;
+  background: #0284c7;
+  border-radius: 20px;
+  padding: 16px 10px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.3);
+  margin: 10px 0 20px;
+}
+
+.title-symbols {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 12px;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  margin-bottom: 2px;
+}
+.title-symbols span { color: #ff3366; }
+
+.main-title {
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.big-btn {
+  width: 100%;
+  min-height: 56px;
+  border: none;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 0 20px rgba(0,0,0,0.3);
+  transition: transform 0.1s, filter 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px 15px;
+}
+
+.big-btn:active {
+  transform: translateY(4px);
+}
+
+.btn-single {
+  background: linear-gradient(180deg, #ff9900, #ff5500);
+  color: #3b0764;
+  box-shadow: 0 6px 0 #b33b00, 0 0 20px rgba(255, 153, 0, 0.5);
+}
+
+.btn-friend {
+  background: linear-gradient(180deg, #00f0ff, #00aaeb);
+  color: #2e1065;
+  box-shadow: 0 6px 0 #0077a3, 0 0 20px rgba(0, 240, 255, 0.5);
+}
+
+.btn-multi {
+  background: linear-gradient(180deg, #d946ef, #a855f7);
+  color: #ffffff;
+  box-shadow: 0 6px 0 #7e22ce, 0 0 20px rgba(217, 70, 239, 0.5);
+}
+
+.btn-rooms {
+  background: linear-gradient(180deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 6px 0 #047857, 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.auth-box {
+  background: rgba(10, 5, 30, 0.85);
+  border: 2px solid var(--neon-cyan);
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.3), inset 0 0 20px rgba(0, 240, 255, 0.1);
+  text-align: center;
+  margin-top: 10px;
+}
+
+.neon-header {
+  border: 2px solid var(--neon-cyan);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 15px rgba(0,240,255,0.4);
+}
+
+.neon-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 8px var(--neon-cyan), 0 0 15px var(--neon-pink);
+}
+
+.path-title {
+  color: #00f0ff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin: 15px 0 15px;
+  text-transform: uppercase;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: 2px solid;
+  background: transparent;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-google {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.auth-email {
+  border-color: var(--neon-pink);
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
+  background: rgba(255, 0, 127, 0.1);
+}
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 12px 0;
+  color: var(--neon-cyan);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.or-divider::before, .or-divider::after {
+  content: "";
+  height: 2px;
+  flex: 1;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+.links-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.link-btn {
+  color: var(--neon-cyan);
+  text-decoration: underline;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  margin: 10px auto;
+  padding: 10px;
+  border: 3px solid #a855f7;
+  border-radius: 20px;
+  background: #0f0728;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+}
+
+.cell {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid #581c87;
+  border-radius: 14px;
+  background: radial-gradient(circle, #1e1145 0%, #0a051b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(38px, 12vw, 60px);
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-sizing: border-box;
+}
+
+.cell.x { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
+.cell.o { color: var(--neon-pink); text-shadow: 0 0 15px var(--neon-pink); }
+.cell.win { background: #4c1d95; border-color: #facc15; box-shadow: 0 0 20px #facc15; }
+
+.neon-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid var(--neon-cyan);
+  background: #0f172a;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 12px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 2, 18, 0.88);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modal {
+  width: min(100%, 400px);
+  background: #0d072b;
+  border: 2px solid #a855f7;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+}
+
+.modal h2 { margin-bottom: 12px; color: #fff; }
+.modal p { color: #cbd5e1; font-size: 14px; margin-bottom: 15px; }
+
+.btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(90deg, #7c3aed, #c026d3);
+  cursor: pointer;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn.secondary {
+  background: #1e1b4b;
+  border: 1px solid #4338ca;
+}
+
+.hide { display: none !important; }
+
+.status {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: #e9d8ff;
+  margin-bottom: 8px;
+  min-height: 24px;
+}
+</style>
+</head>
+<body>
+
+<!-- SIGN IN SCREEN -->
+<div class="wrap" id="authScreen">
+  <header>
+    <button class="iconbtn" id="authBackBtn">‹</button>
+    <button class="iconbtn" id="authSettingsBtn">⚙️</button>
+  </header>
+
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+    <div class="neon-header" style="text-align:center;">
+      <div class="neon-title">NEON TICTACTOE</div>
+    </div>
+
+    <div class="auth-box">
+      <div style="font-size:36px; margin-bottom:5px;">✕ ◯</div>
+      <div class="path-title">CHOOSE YOUR PATH TO PLAY</div>
+
+      <button class="auth-btn auth-google" id="googleSignInBtn">
+        👤 SIGN IN WITH GOOGLE
+      </button>
+
+      <button class="auth-btn auth-email" id="emailSignInBtn">
+        ✉️ SIGN IN WITH EMAIL
+      </button>
+
+      <div class="or-divider">OR</div>
+
+      <div class="links-row">
+        <span class="link-btn" id="playGuestBtn">PLAY AS GUEST</span>
+        <span class="link-btn" id="aboutBtn">ABOUT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN MENU SCREEN -->
+<div class="wrap hide" id="mainMenu">
+  <header>
+    <button class="iconbtn" id="homeBtn">👤</button>
+    <div class="coin-display">
+      <span class="coin-icon">🪙</span>
+      <span class="coin-count" id="coinCount">100</span>
+    </div>
+    <button class="iconbtn" id="menuSettings">⚙️</button>
+  </header>
+
+  <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+    <div class="title-box">
+      <div class="title-symbols">✕ <span>○</span></div>
+      <div class="main-title">TICTACTOE</div>
+      <div id="playerBadge" style="font-size: 13px; color: #a7f3d0; margin-top: 4px; font-weight: bold;">Player: Guest</div>
+    </div>
+
+    <div class="menu-buttons">
+      <button class="big-btn btn-single" id="menuAI">SINGLEPLAYER (VS AI)</button>
+      <button class="big-btn btn-friend" id="passAndPlayBtn">PASS & PLAY (LOCAL)</button>
+      <button class="big-btn btn-multi" id="menuCreateRoom">➕ CREATE MULTIPLAYER ROOM</button>
+      <button class="big-btn btn-rooms" id="menuBrowseRooms">🌐 LOCAL / PUBLIC ROOMS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROOMS BROWSER SCREEN -->
+<div class="wrap hide" id="roomsScreen">
+  <header>
+    <button class="iconbtn" id="roomsBackBtn">‹</button>
+    <div style="font-weight:900; font-size:18px; color:var(--neon-cyan);">ACTIVE ROOMS</div>
+    <button class="iconbtn" id="refreshRoomsBtn">↻</button>
+  </header>
+
+  <div id="roomsListContainer" style="flex:1; overflow-y:auto; padding-top:10px;">
+    <div style="text-align:center; color:#94a3b8; margin-top:20px;">Scanning for active rooms...</div>
+  </div>
+</div>
+
+<!-- GAMEPLAY SCREEN -->
+<div class="wrap hide" id="gameScreen">
+  <header>
+    <button class="iconbtn" id="gameBack">‹</button>
+    <div class="coin-display">
+      <span class="coin-icon">🪙</span>
+      <span class="coin-count" id="gameCoinCount">100</span>
+    </div>
+    <button class="iconbtn" id="gameSettings">⚙️</button>
+  </header>
+
+  <div class="status" id="status">Your turn — place X</div>
+  <div class="board" id="board"></div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+    <button class="btn" id="restartBtn">↻ RESTART</button>
+    <button class="btn secondary" id="undoBtn">↶ UNDO</button>
+  </div>
+</div>
+
+<!-- CUSTOM MESSAGE MODAL -->
+<div class="overlay hide" id="msgModal">
+  <div class="modal">
+    <h2 id="msgTitle">Notification</h2>
+    <p id="msgBody">Text here</p>
+    <button class="btn" id="closeMsgBtn">OK</button>
+  </div>
+</div>
+
+<!-- SETTINGS / PROFILE MODAL -->
+<div class="overlay hide" id="settingsModal">
+  <div class="modal">
+    <h2>⚙️ Game Settings & Profile</h2>
+    <p>Player Nickname:</p>
+    <input type="text" id="settingsNameInput" class="neon-input" placeholder="Your Name" maxlength="15">
+    
+    <p>AI Difficulty:</p>
+    <select id="difficultySelect" style="width:100%; padding:10px; border-radius:8px; margin-bottom:15px; background:#1e1b4b; color:#fff; border:1px solid #4338ca;">
+      <option value="easy">Easy — Casual</option>
+      <option value="medium" selected>Medium — Balanced</option>
+      <option value="hard">Hard — Unbeatable</option>
+    </select>
+    <button class="btn" id="saveSettingsBtn">SAVE</button>
+    <button class="btn secondary" id="closeSettingsBtn">CLOSE</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const $ = id => document.getElementById(id);
+
+// Firebase Setup
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'neon-tictactoe-app';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", authDomain: "demo", projectId: "demo" };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let coins = parseInt(localStorage.getItem('tictactoe_coins') || '100');
+let playerName = localStorage.getItem('tictactoe_player_name') || 'Guest Player';
+let board = Array(9).fill('');
+let turn = 'X';
+let ended = false;
+let mode = 'ai'; // 'ai', 'friend', 'online'
+let difficulty = 'medium';
+let history = [];
+let matchEvaluated = false;
+
+// Online Multiplayer state
+let currentRoomId = null;
+let mySymbol = 'X';
+let unsubscribeRoom = null;
+let unsubscribeRoomsList = null;
+
+function showMsg(title, text) {
+  $('msgTitle').textContent = title;
+  $('msgBody').textContent = text;
+  $('msgModal').classList.remove('hide');
+}
+$('closeMsgBtn').onclick = () => $('msgModal').classList.add('hide');
+
+async function initAuth() {
+  try {
+    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+      const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
+      currentUser = userCredential.user;
+    } else {
+      const userCredential = await signInAnonymously(auth);
+      currentUser = userCredential.user;
+    }
+  } catch (err) {
+    console.warn("Auth initialization fallback:", err);
+  }
+}
+initAuth();
+
+function updateCoinsDisplay() {
+  if ($('coinCount')) $('coinCount').textContent = coins;
+  if ($('gameCoinCount')) $('gameCoinCount').textContent = coins;
+  localStorage.setItem('tictactoe_coins', coins);
+}
+
+function updatePlayerBadge() {
+  if ($('playerBadge')) $('playerBadge').textContent = `Player: ${playerName}`;
+  if ($('settingsNameInput')) $('settingsNameInput').value = playerName;
+  localStorage.setItem('tictactoe_player_name', playerName);
+}
+
+function showScreen(screenId) {
+  ['authScreen', 'mainMenu', 'roomsScreen', 'gameScreen'].forEach(id => {
+    if ($(id)) $(id).classList.add('hide');
+  });
+  if ($(screenId)) $(screenId).classList.remove('hide');
+}
+
+// Authentication button bindings
+$('playGuestBtn').onclick = () => showScreen('mainMenu');
+
+$('googleSignInBtn').onclick = async () => {
+  try {
+    if (!auth.currentUser) await initAuth();
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    currentUser = result.user;
+    if (currentUser.displayName) {
+      playerName = currentUser.displayName;
+    }
+    updatePlayerBadge();
+    showMsg("Success", `Signed in successfully as ${playerName}!`);
+    showScreen('mainMenu');
+  } catch (err) {
+    console.error("Google sign-in error:", err);
+    showMsg("Sign-In Notice", "Google Sign-In popup closed or unavailable in current preview mode. Continuing as Guest!");
+    showScreen('mainMenu');
+  }
+};
+
+$('emailSignInBtn').onclick = () => {
+  showMsg("Email Sign In", "Please enter your nickname in settings or sign in with Google for full cloud sync.");
+  showScreen('mainMenu');
+};
+
+$('aboutBtn').onclick = () => {
+  showMsg("About", "Neon TicTacToe v2.5 — Live Multiplayer with real-time room hosting, custom AI, and coin stakes!");
+};
+
+$('authBackBtn').onclick = () => showScreen('mainMenu');
+$('authSettingsBtn').onclick = () => $('settingsModal').classList.remove('hide');
+$('homeBtn').onclick = () => showScreen('authScreen');
+
+$('roomsBackBtn').onclick = () => {
+  if (unsubscribeRoomsList) unsubscribeRoomsList();
+  showScreen('mainMenu');
+};
+
+// Settings Modal Controls
+$('menuSettings').onclick = () => $('settingsModal').classList.remove('hide');
+$('gameSettings').onclick = () => $('settingsModal').classList.remove('hide');
+$('closeSettingsBtn').onclick = () => $('settingsModal').classList.add('hide');
+$('saveSettingsBtn').onclick = () => {
+  const newName = $('settingsNameInput').value.trim();
+  if (newName) playerName = newName;
+  difficulty = $('difficultySelect').value;
+  updatePlayerBadge();
+  $('settingsModal').classList.add('hide');
+};
+
+// Game Start Triggers
+$('menuAI').onclick = () => startNewGame('ai');
+if ($('passAndPlayBtn')) $('passAndPlayBtn').onclick = () => startNewGame('friend');
+$('menuCreateRoom').onclick = createOnlineRoom;
+$('menuBrowseRooms').onclick = openRoomsBrowser;
+
+$('gameBack').onclick = () => {
+  if (unsubscribeRoom) unsubscribeRoom();
+  showScreen('mainMenu');
+};
+
+function startNewGame(selectedMode) {
+  mode = selectedMode;
+  board = Array(9).fill('');
+  turn = 'X';
+  ended = false;
+  matchEvaluated = false;
+  history = [];
+
+  showScreen('gameScreen');
+  renderBoard();
+}
+
+async function createOnlineRoom() {
+  if (!auth.currentUser) await initAuth();
+  if (!currentUser) currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    showMsg("Connecting...", "Authenticating with server, please wait a moment and try again.");
+    return;
+  }
+
+  const roomTitle = `${playerName}'s Room`;
+  const roomId = 'room_' + Math.floor(1000 + Math.random() * 9000);
+  currentRoomId = roomId;
+  mySymbol = 'X';
+  mode = 'online';
+
+  const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+  const roomData = {
+    id: roomId,
+    title: roomTitle,
+    hostName: playerName,
+    hostId: currentUser ? currentUser.uid : 'anon',
+    guestName: null,
+    guestId: null,
+    board: Array(9).fill(''),
+    turn: 'X',
+    status: 'waiting', 
+    winner: null
+  };
+
+  try {
+    await setDoc(roomRef, roomData);
+    listenToRoom(roomId);
+    startNewGame('online');
+  } catch (err) {
+    console.error("Create room error:", err);
+    showMsg("Error", "Could not create room. Please check connection.");
+  }
+}
+
+function openRoomsBrowser() {
+  showScreen('roomsScreen');
+  fetchRoomsList();
+}
+
+$('refreshRoomsBtn').onclick = fetchRoomsList;
+
+async function fetchRoomsList() {
+  const container = $('roomsListContainer');
+  container.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:20px;">Scanning for active rooms...</div>';
+
+  if (!auth.currentUser) await initAuth();
+  if (!currentUser) currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    container.innerHTML = '<div style="text-align:center; color:#f43f5e;">Authentication failed. Please check internet connection.</div>';
+    return;
+  }
+
+  const roomsCol = collection(db, 'artifacts', appId, 'public', 'data', 'rooms');
+  
+  if (unsubscribeRoomsList) unsubscribeRoomsList();
+
+  unsubscribeRoomsList = onSnapshot(roomsCol, (snapshot) => {
+    container.innerHTML = '';
+    let count = 0;
+    snapshot.forEach((docSnap) => {
+      const room = docSnap.data();
+      if (room && room.status === 'waiting') {
+        count++;
+        const card = document.createElement('div');
+        card.className = 'room-card';
+        card.style.cssText = 'background: rgba(15, 23, 42, 0.8); border: 2px solid var(--neon-cyan); border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);';
+        card.innerHTML = `
+          <div>
+            <div style="font-weight: 800; font-size: 16px; color: #fff;">🏰 ${room.title || room.hostName + "'s Room"}</div>
+            <div style="font-size: 12px; color: #94a3b8;">Host: ${room.hostName} • Code: ${room.id}</div>
+          </div>
+          <button style="background: var(--neon-cyan); color: #0b0f19; border: none; font-weight: 900; padding: 8px 16px; border-radius: 10px; cursor: pointer;">JOIN</button>
+        `;
+        card.querySelector('button').onclick = () => joinOnlineRoom(room.id);
+        container.appendChild(card);
+      }
+    });
+
+    if (count === 0) {
+      container.innerHTML = '<div style="text-align:center; color:#cbd5e1; margin-top:30px;">No open rooms found right now.<br><br>Click "CREATE MULTIPLAYER ROOM" to host one!</div>';
+    }
+  }, (err) => {
+    console.error("Rooms fetch error:", err);
+    container.innerHTML = '<div style="text-align:center; color:#f43f5e;">Error connecting to live room list.</div>';
+  });
+}
+
+async function joinOnlineRoom(roomId) {
+  if (!auth.currentUser) await initAuth();
+  if (!currentUser) currentUser = auth.currentUser;
+
+  currentRoomId = roomId;
+  mySymbol = 'O';
+  mode = 'online';
+
+  const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+  try {
+    await updateDoc(roomRef, {
+      guestName: playerName,
+      guestId: currentUser ? currentUser.uid : 'guest',
+      status: 'playing'
+    });
+    listenToRoom(roomId);
+    startNewGame('online');
+  } catch (err) {
+    console.error("Join room error:", err);
+    showMsg("Error", "Unable to join room. It might be full or closed.");
+  }
+}
+
+function listenToRoom(roomId) {
+  if (unsubscribeRoom) unsubscribeRoom();
+  const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomId);
+
+  unsubscribeRoom = onSnapshot(roomRef, (docSnap) => {
+    if (!docSnap.exists()) return;
+    const data = docSnap.data();
+
+    board = data.board;
+    turn = data.turn;
+
+    if (data.status === 'waiting') {
+      $('status').textContent = `⏳ Waiting for Player 2 to join... (Room: ${data.title || roomId})`;
+    } else if (data.status === 'playing') {
+      const isMyTurn = turn === mySymbol;
+      const opponentName = mySymbol === 'X' ? (data.guestName || "Player 2") : data.hostName;
+      const turnName = isMyTurn ? "Your Turn" : opponentName;
+      $('status').textContent = `${turnName} (${turn})`;
+    }
+
+    const winLine = checkWin(board);
+    if (winLine) {
+      ended = true;
+      const winnerSymbol = board[winLine[0]];
+      const winnerName = winnerSymbol === 'X' ? data.hostName : (data.guestName || "Player 2");
+      
+      if (!matchEvaluated) {
+        matchEvaluated = true;
+        if (winnerSymbol === mySymbol) {
+          coins += 15;
+        } else {
+          coins = Math.max(0, coins - 15);
+        }
+        updateCoinsDisplay();
+      }
+
+      $('status').textContent = winnerSymbol === mySymbol ? `🎉 You Win! (+15 🪙)` : `💀 ${winnerName} Wins! (-15 🪙)`;
+    } else if (board.every(Boolean)) {
+      ended = true;
+      $('status').textContent = "🤝 Game Drawn!";
+    }
+
+    renderBoardStateOnly(winLine);
+  }, (err) => {
+    console.error("Room sync error:", err);
+  });
+}
+
+function renderBoard() {
+  renderBoardStateOnly(checkWin(board));
+}
+
+function renderBoardStateOnly(winLine) {
+  const b = $('board');
+  b.innerHTML = '';
+  board.forEach((val, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'cell ' + (val ? val.toLowerCase() : '');
+    btn.textContent = val === 'X' ? '✕' : val === 'O' ? '○' : '';
+    if (winLine && winLine.includes(i)) {
+      btn.classList.add('win');
+    }
+    btn.onclick = () => play(i);
+    b.appendChild(btn);
+  });
+
+  if (mode !== 'online' && !ended) {
+    $('status').textContent = `Turn: Player ${turn}`;
+  }
+}
+
+async function play(i) {
+  if (ended || board[i]) return;
+
+  if (mode === 'online') {
+    if (turn !== mySymbol) return; 
+    const newBoard = [...board];
+    newBoard[i] = mySymbol;
+    const nextTurn = mySymbol === 'X' ? 'O' : 'X';
+
+    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+    await updateDoc(roomRef, {
+      board: newBoard,
+      turn: nextTurn
+    });
+    return;
+  }
+
+  history.push({ board: [...board], turn });
+  board[i] = turn;
+  
+  const winLine = checkWin(board);
+  if (winLine) {
+    ended = true;
+    if (!matchEvaluated) {
+      matchEvaluated = true;
+      if (mode === 'ai') {
+        if (turn === 'X') {
+          coins += 15;
+          $('status').textContent = '🎉 You Win! (+15 🪙)';
+        } else {
+          coins = Math.max(0, coins - 15);
+          $('status').textContent = '💀 AI Won! (-15 🪙)';
+        }
+      } else {
+        $('status').textContent = `🎉 Player ${turn} Wins!`;
+      }
+      updateCoinsDisplay();
+    }
+    renderBoard();
+    return;
+  }
+
+  if (board.every(Boolean)) {
+    ended = true;
+    $('status').textContent = "🤝 Game Drawn!";
+    renderBoard();
+    return;
+  }
+
+  turn = turn === 'X' ? 'O' : 'X';
+  renderBoard();
+
+  if (mode === 'ai' && turn === 'O' && !ended) {
+    setTimeout(aiMove, 300);
+  }
+}
+
+function aiMove() {
+  const emptyIndices = board.map((v, i) => v === '' ? i : null).filter(v => v !== null);
+  if (emptyIndices.length === 0) return;
+  
+  let move;
+  if (difficulty === 'easy') {
+    move = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+  } else {
+    for (let idx of emptyIndices) {
+      let temp = [...board];
+      temp[idx] = 'O';
+      if (checkWin(temp)) { move = idx; break; }
+    }
+    if (move === undefined) {
+      for (let idx of emptyIndices) {
+        let temp = [...board];
+        temp[idx] = 'X';
+        if (checkWin(temp)) { move = idx; break; }
+      }
+    }
+    if (move === undefined) {
+      move = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+    }
+  }
+
+  play(move);
+}
+
+function checkWin(b) {
+  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for (let l of lines) {
+    if (b[l[0]] && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return l;
+  }
+  return null;
+}
+
+$('restartBtn').onclick = async () => {
+  if (mode === 'online') {
+    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+    await updateDoc(roomRef, {
+      board: Array(9).fill(''),
+      turn: 'X',
+      status: 'playing'
+    });
+  } else {
+    startNewGame(mode);
+  }
+};
+
+$('undoBtn').onclick = () => {
+  if (mode !== 'online' && history.length > 0 && !ended) {
+    const last = history.pop();
+    board = last.board;
+    turn = last.turn;
+    renderBoard();
+  }
+};
+
+// Initial State Updates
+updateCoinsDisplay();
+updatePlayerBadge();
+</script>
+</body>
+</html>
+```
